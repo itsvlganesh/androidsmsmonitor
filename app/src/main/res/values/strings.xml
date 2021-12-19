@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Boubyan SMS Monitor</string>
+    <string name="inputExtra">Listening on SMS stream...</string>
+</resources>
