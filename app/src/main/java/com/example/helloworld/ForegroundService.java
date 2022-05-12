@@ -23,6 +23,7 @@ import androidx.core.app.NotificationCompat;
 
 import androidx.annotation.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import static com.example.helloworld.MainActivity.context;
@@ -55,25 +56,31 @@ public class ForegroundService extends Service {
         //stopSelf();
         System.out.println("VASA APP------------------Foreground service");
         backgroundHandler = new Handler(); // new handler
-        backgroundHandler.postDelayed(runnable, 10000); // 10 mins int.
-       // backgroundHandler = new Handler(handlerThread.getLooper());
+        backgroundHandler.postDelayed(runnable, 10000); // 10 mins int. 10000 sec
+//       // backgroundHandler = new Handler(handlerThread.getLooper());
 
        // backgroundHandler.postDelayed(runnable, 10000); // 10 mins int.
 
+        System.out.println("VASA APP------------------Foreground service first run");
+        MainActivity.updateUI();
         return START_STICKY;
     }
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
             /* my set of codes for repeated work */
+            System.out.println("VASA APP------------------Foreground service scheduled run");
             MainActivity.updateUI();
+//            backgroundHandler = new Handler(); // new handler
             backgroundHandler.postDelayed(this, 10000); // reschedule the handler
         }
     };
 
     @Override
     public void onDestroy() {
+        //commented on 10May2022
         super.onDestroy();
+        System.out.println("VASA APP------------------Foreground service OnDestroy");
     }
 
     @Nullable
@@ -93,4 +100,7 @@ public class ForegroundService extends Service {
             manager.createNotificationChannel(serviceChannel);
         }
     }
+
+
+
 }

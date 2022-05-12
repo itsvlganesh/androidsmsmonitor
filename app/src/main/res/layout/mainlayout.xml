@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:contentDescription="API Link"
-            android:text="http://"/>
+            android:text="http://192.168.8.149:8082/SMS_Service/json/product/postSMS"/>
 
 
 
@@ -38,8 +38,8 @@
             android:id="@+id/mobile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:contentDescription="API Link"
-            android:text=""/>
+            android:contentDescription="Mobile Number"
+            android:text="51153038 67002807"/>
 
 
     </RelativeLayout>
@@ -56,7 +56,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:contentDescription="API Link"
-            android:text=""/>
+            android:text="STC OOREDOO"/>
 
 
 

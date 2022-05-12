@@ -15,6 +15,7 @@ import android.os.Bundle;
 
 import android.content.*;
 import android.os.Handler;
+import android.provider.Telephony;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
@@ -33,6 +34,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -182,11 +184,12 @@ updateUI();
         });
     }
 
-    static void updateUI(){
+     static void updateUI(){
         @SuppressWarnings("" +
                 "unchecked")
         ArrayAdapter adapter = new ArrayAdapter(context, android.R.layout.simple_list_item_1, fetchInbox());
         lViewSMS.setAdapter(adapter);
+
     }
 
 
@@ -209,11 +212,13 @@ updateUI();
     }
 
     public void startService() {
+        System.out.println("VASA APP------------:Start Foreground Service");
         Intent serviceIntent = new Intent(this, ForegroundService.class);
         serviceIntent.putExtra("inputExtra", "Foreground Service Example in Android");
         ContextCompat.startForegroundService(this, serviceIntent);
     }
     public void stopService() {
+        System.out.println("VASA APP------------:Stop Foreground Service");
         Intent serviceIntent = new Intent(this, ForegroundService.class);
         stopService(serviceIntent);
     }
@@ -322,8 +327,17 @@ updateUI();
                             //Create a JSON object containing information from the API.
                             System.out.println("VASA APP------------:"+"Response----------:"+response);
                             JSONObject myJsonObject = new JSONObject(response);
-                            System.out.println("VASA APP------------status:"+myJsonObject.getString("status"));
+                            String status = myJsonObject.getString("status");
+                            System.out.println("VASA APP------------status:"+status);
 
+                            if(status.equalsIgnoreCase("SQLException") || status.equalsIgnoreCase("Exception")) {
+                             //   MainActivity.markSmsAsRead("BoubyanBank");
+                                //MainActivity ma=new MainActivity();
+//                                ma.markAllSMS();
+
+                                MainActivity.deleteCache(context);
+
+                            }
 
                         } catch (Exception e) {
                             System.out.println("VASA APP------------getDate network exception:"+e.getMessage());
@@ -400,7 +414,7 @@ int count = 0;
         if (address.equalsIgnoreCase("BoubyanBank") ) {
             sms.add(address + "\n" + body);
             //Do what you want
-            System.out.println("VASA APP------------:" + body);
+            System.out.println("VASA APP------------ message body fetch sms:" + body);
 
             /*Call web service*/
            getData(link, body, phone, network);
@@ -417,18 +431,25 @@ int count = 0;
 }
     }
 
-    public void markSmsAsRead(final String from) {
+
+    public void markAllSMS(){
+        ContentValues values = new ContentValues();
+        values.put(Telephony.Sms.READ, 1);
+        getContentResolver().update(Telephony.Sms.Inbox.CONTENT_URI,
+                values, Telephony.Sms.READ + "=0", null);
+    }
+    public static void markSmsAsRead(final String from) {
 
         Thread waiter = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    Log.w("MainActivity", "Exception while sleeping markSmsAsReadThread: " + e.getMessage());
-                }
-
+//                try {
+//                    Thread.sleep(3000);
+//                } catch (InterruptedException e) {
+//                    Log.w("MainActivity", "Exception while sleeping markSmsAsReadThread: " + e.getMessage());
+//                }
+                Log.i("VASA APP------------", "markasread");
                 Uri uri = Uri.parse("content://sms/inbox");
                 String selection = "address = ? AND read = ?";
                 String[] selectionArgs = {from, "0"};
@@ -437,7 +458,7 @@ int count = 0;
                 values.put("read", true);
 
                 int rowsUpdated = context.getContentResolver().update(uri, values, selection, selectionArgs);
-                Log.i("TAGGG", "rows updated: " + rowsUpdated);
+                Log.i("VASA APP------------", "rows updated: " + rowsUpdated);
             }
         });
         waiter.start();
@@ -503,7 +524,7 @@ int count = 0;
             // with access to the result of the long running task
             // DO SOMETHING WITH STRING RESPONSE
             System.out.println("VASA APP------------:"+"WebService result:"+result);
-            Toast.makeText(MainActivity.this, result, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(MainActivity.this, result, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -526,9 +547,41 @@ int count = 0;
         System.out.println("VASA APP------------:"+"Vasa Destroy================================================");
 //        getContentResolver().
 //                unregisterContentObserver(smsObserver);
-        if(broadcastReceiver != null) {
-            unregisterReceiver(broadcastReceiver);
-        }
+
+        //commented on 10May2022
+//        if(broadcastReceiver != null) {
+//            unregisterReceiver(broadcastReceiver);
+//        }
         super.onDestroy();
+    }
+
+    public static void deleteCache(Context context) {
+        //MainActivity mm=new MainActivity();
+        try {
+          //  mm.stopService();
+            System.out.println("VASA APP------------:Delete Cache");
+            File dir = context.getCacheDir();
+            deleteDir(dir);
+        } catch (Exception e) {} finally {
+         //   mm.startService();
+        }
+    }
+    public static boolean deleteDir(File dir) {
+        System.out.println("VASA APP------------:Delete Directory");
+        if (dir != null && dir.isDirectory()) {
+            System.out.println("VASA APP------------:Delete Directory if not null");
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+            return dir.delete();
+        } else if(dir!= null && dir.isFile()) {
+            return dir.delete();
+        } else {
+            return false;
+        }
     }
 }
